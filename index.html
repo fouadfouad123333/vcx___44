@@ -2,17 +2,119 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" centent="width=device-width,
-initial-scal=1.0">
-    <title>Mon premier site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10152b">
+    <title>Fouad | Mon univers</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Salam Fouad !</h1>
-  <p>Bienvenue dans mon premier sit web.</p>
-  <p>Je suis Fouad et ceci est mon premier projet !</p>
-    <button onclick="alert('Salam Fouad! Marhaba bik f site dyali')">
-        Clique ici !
-    </button>
+
+    <header class="navbar">
+        <a class="logo" href="#">FOUAD<span>.</span></a>
+        <a class="nav-link" href="#about">À propos</a>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="orb orb-one"></div>
+            <div class="orb orb-two"></div>
+
+            <div class="content">
+                <div class="tag">✦ MON PREMIER PROJET WEB</div>
+
+                <h1>Salam,<br>
+                    <span>Fouad !</span>
+                </h1>
+
+                <h2>Bienvenue dans mon univers.</h2>
+
+                <p>
+                    Salut ! Je suis Fouad.
+                    Ceci est mon premier site web.
+                    Bienvenue chez moi !
+                </p>
+
+                <a class="button" href="#about">
+                    Découvrir mon site <span>→</span>
+                </a>
+
+                <div class="stats">
+                    <div>
+                        <strong>01</strong>
+                        <small>Mon site</small>
+                    </div>
+                    <div>
+                        <strong>∞</strong>
+                        <small>Mes idées</small>
+                    </div>
+                    <div>
+                        <strong>🚀</strong>
+                        <small>Mon avenir</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <div class="avatar">F</div>
+                <div class="sparkle">✦</div>
+                <div class="card-name">Fouad</div>
+                <div class="card-subtitle">Future Developer 💻</div>
+                <div class="status">
+                    <span></span> En train d'apprendre
+                </div>
+            </div>
+        </section>
+
+        <section class="about" id="about">
+            <div class="section-tag">MON PARCOURS</div>
+            <h2>Chaque expert a commencé <span>un jour.</span></h2>
+            <p>
+                J'apprends le développement web étape par étape.
+                Ce site est le début de mon aventure !
+            </p>
+
+            <div class="skills">
+                <div class="skill">
+                    <div class="skill-icon html">5</div>
+                    <h3>HTML</h3>
+                    <p>La structure du site</p>
+                </div>
+
+                <div class="skill">
+                    <div class="skill-icon css">✿</div>
+                    <h3>CSS</h3>
+                    <p>Le style et les couleurs</p>
+                </div>
+
+                <div class="skill">
+                    <div class="skill-icon js">JS</div>
+                    <h3>JavaScript</h3>
+                    <p>Les interactions</p>
+                </div>
+            </div>
+
+            <button class="button" id="welcomeBtn" type="button">
+                Clique ici ✨
+            </button>
+            <p id="message" class="message" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <footer>
+        <a class="logo" href="#">FOUAD<span>.</span></a>
+        <p>Créé avec passion par Fouad © 2026</p>
+    </footer>
+
+    <script>
+        const button = document.getElementById("welcomeBtn");
+        const message = document.getElementById("message");
+
+        button.addEventListener("click", function () {
+            message.textContent =
+                "Salam ! Marhba bik f site dyali 💜";
+            button.textContent = "Merci pour ta visite ✓";
+        });
+    </script>
+
 </body>
-</html
+</html>
