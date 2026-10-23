@@ -126,7 +126,37 @@
         <a class="logo" href="#">FOUAD<span>.</span></a>
         <p>Créé avec passion par Fouad © 2026</p>
     </footer>
+<section class="game-section" id="code-game">
+  <h2>🎮 Code Master</h2>
+  <p>Apprends la programmation en jouant !</p>
 
+  <div class="game-card">
+    <p id="game-level">Niveau 1</p>
+    <h3 id="game-question">Que signifie HTML ?</h3>
+
+    <div class="game-answers">
+      <button class="answer-btn" data-answer="0">
+        A. HyperText Markup Language
+      </button>
+      <button class="answer-btn" data-answer="1">
+        B. High Tech Modern Language
+      </button>
+      <button class="answer-btn" data-answer="2">
+        C. Home Tool Machine Language
+      </button>
+    </div>
+
+    <p id="game-feedback" aria-live="polite">
+      Choisis la bonne réponse !
+    </p>
+
+    <p>⭐ Score : <span id="game-score">0</span></p>
+
+    <button id="next-question" type="button" hidden>
+      Question suivante ➜
+    </button>
+  </div>
+</section>
     <script>
         const button = document.getElementById("welcomeBtn");
         const message = document.getElementById("message");
