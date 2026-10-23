@@ -406,3 +406,18 @@ footer p {
   color: #93c5fd;
   font-size: 14px;
 }
+.projects-btn {
+    display: inline-block;
+    margin: 20px auto;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 12px;
+    transition: 0.3s ease;
+}
+.projects-btn:hover {
+    transform: translatY(-40px);
+    box-shadow: 0 8px 25px #6366f180;
+}
