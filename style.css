@@ -439,3 +439,28 @@ footer p {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px #6366f180;
 }
+body.light-mode {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+body.light-mode .project-card {
+  background: linear-gradient(135deg, #dbeafe, #ede9fe);
+  border-color: #a5b4fc;
+}
+
+body.light-mode .project-card h3 {
+  color: #1e293b;
+}
+
+body.light-mode .project-card p {
+  color: #334155;
+}
+
+body.light-mode .projects h2 {
+  color: #1e293b;
+}
+
+body.light-mode .projects > p {
+  color: #475569;
+}
