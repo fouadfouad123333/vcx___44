@@ -464,3 +464,99 @@ body.light-mode .projects h2 {
 body.light-mode .projects > p {
   color: #475569;
 }
+/* Code Master Game */
+.game-section {
+  max-width: 850px;
+  margin: 60px auto;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.game-section h2 {
+  font-size: 36px;
+  color: #a78bfa;
+  margin-bottom: 12px;
+}
+
+.game-section > p {
+  color: #cbd5e1;
+  margin-bottom: 25px;
+}
+
+.game-card {
+  background: linear-gradient(145deg, #172554, #312e81);
+  border: 1px solid #818cf8;
+  border-radius: 22px;
+  padding: 28px 20px;
+  box-shadow: 0 12px 35px #00000030;
+}
+
+#game-level {
+  color: #c4b5fd;
+  font-weight: bold;
+}
+
+#game-question {
+  color: white;
+  font-size: 23px;
+  margin: 20px 0;
+}
+
+.game-answers {
+  display: grid;
+  gap: 12px;
+  margin: 25px 0;
+}
+
+.answer-btn,
+#next-question {
+  padding: 14px;
+  border: 1px solid #818cf8;
+  border-radius: 12px;
+  background: #ffffff10;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.answer-btn:hover,
+#next-question:hover {
+  background: #6366f1;
+  transform: translateY(-2px);
+}
+
+.answer-btn:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+#game-feedback {
+  color: #e0e7ff;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+#game-score {
+  color: #facc15;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+#next-question {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+@media (max-width: 600px) {
+  .game-section h2 {
+    font-size: 29px;
+  }
+
+  .game-card {
+    padding: 22px 14px;
+  }
+
+  #game-question {
+    font-size: 20px;
+  }
+}
