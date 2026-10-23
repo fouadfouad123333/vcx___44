@@ -180,5 +180,133 @@
     }
   });
 </script>
+<script>
+const questions = [
+  {
+    question: "Que signifie HTML ?",
+    answers: [
+      "HyperText Markup Language",
+      "High Tech Modern Language",
+      "Home Tool Machine Language"
+    ],
+    correct: 0,
+    explanation: "HTML sert à structurer le contenu d'une page web."
+  },
+  {
+    question: "Quel langage sert à styliser un site web ?",
+    answers: ["Python", "CSS", "SQL"],
+    correct: 1,
+    explanation: "CSS contrôle les couleurs, les tailles et la disposition."
+  },
+  {
+    question: "Quelle balise crée un paragraphe en HTML ?",
+    answers: ["<h1>", "<img>", "<p>"],
+    correct: 2,
+    explanation: "La balise <p> sert à créer un paragraphe."
+  },
+  {
+    question: "Quel langage rend une page interactive ?",
+    answers: ["JavaScript", "CSS", "HTML seulement"],
+    correct: 0,
+    explanation: "JavaScript permet de réagir aux clics et aux actions."
+  },
+  {
+    question: "Quelle propriété CSS change la couleur du texte ?",
+    answers: ["background", "color", "font-size"],
+    correct: 1,
+    explanation: "La propriété color définit la couleur du texte."
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+
+const questionEl = document.getElementById("game-question");
+const answersEl = document.querySelector(".game-answers");
+const feedbackEl = document.getElementById("game-feedback");
+const scoreEl = document.getElementById("game-score");
+const levelEl = document.getElementById("game-level");
+const nextBtn = document.getElementById("next-question");
+
+function showQuestion() {
+  answered = false;
+  const q = questions[currentQuestion];
+
+  levelEl.textContent =
+    "Niveau " + (currentQuestion + 1) + " / " + questions.length;
+  questionEl.textContent = q.question;
+  feedbackEl.textContent = "Choisis la bonne réponse !";
+  answersEl.innerHTML = "";
+  nextBtn.hidden = true;
+
+  q.answers.forEach((answer, index) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.textContent = answer;
+    btn.type = "button";
+    btn.addEventListener("click", () => checkAnswer(index));
+    answersEl.appendChild(btn);
+  });
+}
+
+function checkAnswer(index) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[currentQuestion];
+  const buttons = answersEl.querySelectorAll(".answer-btn");
+
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (index === q.correct) {
+    score += 10;
+    feedbackEl.textContent = "✅ Bravo ! " + q.explanation;
+  } else {
+    feedbackEl.textContent =
+      "❌ Pas tout à fait. Bonne réponse : " +
+      q.answers[q.correct] + ". " + q.explanation;
+  }
+
+  scoreEl.textContent = score;
+  nextBtn.hidden = false;
+  nextBtn.textContent =
+    currentQuestion === questions.length - 1
+      ? "Voir mon résultat 🏆"
+      : "Question suivante ➜";
+}
+
+nextBtn.addEventListener("click", () => {
+  if (!answered) return;
+
+  currentQuestion++;
+
+  if (currentQuestion >= questions.length) {
+    levelEl.textContent = "Jeu terminé 🏆";
+    questionEl.textContent = "Ton score : " + score + " / 50";
+    answersEl.innerHTML = "";
+    feedbackEl.textContent =
+      score === 50
+        ? "Excellent ! Tu maîtrises les bases !"
+        : "Bien joué ! Relis les explications et réessaie.";
+    nextBtn.textContent = "Recommencer 🔄";
+    nextBtn.hidden = false;
+    nextBtn.onclick = () => {
+      currentQuestion = 0;
+      score = 0;
+      scoreEl.textContent = score;
+      nextBtn.onclick = null;
+      showQuestion();
+    };
+    return;
+  }
+
+  showQuestion();
+});
+
+if (questionEl && answersEl && feedbackEl && scoreEl && levelEl && nextBtn) {
+  showQuestion();
+}
+</script>    
 </body>
 </html>
