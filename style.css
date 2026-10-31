@@ -1,0 +1,19 @@
+:root {
+  --bg: #0a0a0f;
+  --card: #14141c;
+  --purple: #8b5cf6;
+  --red: #ef4444;
+  --text: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.6; }
+nav { display: flex; gap: 1.5rem; padding: 1rem 2rem; background: var(--card); border-bottom: 2px solid var(--purple); }
+nav a { color: var(--text); text-decoration: none; font-weight: 600; }
+nav a:hover { color: var(--red); }
+main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+h1, h2 { color: var(--purple); }
+.card { background: var(--card); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #2a2a38; }
+.btn { background: var(--purple); color: white; border: 0; padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; text-decoration: none; display: inline-block; }
+.btn:hover { background: var(--red); }
+input { padding: .6rem; border-radius: 8px; border: 1px solid var(--purple); background: var(--bg); color: var(--text); }
+code { color: var(--red); }
