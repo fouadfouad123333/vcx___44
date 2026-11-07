@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASHEN — The Last Signal</title>
+<style>
+  * { box-sizing: border-box }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    padding: 18px; color: #ddd; background: #090a0c;
+    font: 14px "Segoe UI", Arial, sans-serif;
+  }
+  main { width: min(960px, 100%) }
+  header, footer { display: flex; justify-content: space-between; gap: 16px; align-items: center }
+  header { margin-bottom: 12px }
+  h1 { margin: 0; letter-spacing: .25em; font-size: 16px }
+  small, footer { color: #92969e }
+  #hud { display: flex; gap: 22px; text-align: right }
+  #hud span { display: block; color: #92969e; font-size: 10px; letter-spacing: .12em }
+  #hud strong { color: white }
+  .frame { position: relative; overflow: hidden; border: 1px solid #444850; box-shadow: 0 20px 70px #000 }
+  canvas { display: block; width: 100%; aspect-ratio: 16 / 9 }
+  #overlay {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    padding: 20px; text-align: center; background: #08090bdc;
+  }
+  #overlay.hidden { display: none }
+  .card { max-width: 470px }
+  .red { color: #e33d49; letter-spacing: .3em; font-size: 11px }
+  h2 { margin: 12px 0; font-size: clamp(36px, 8vw, 64px); letter-spacing: .08em }
+  p { color: #aaa; line-height: 1.7 }
+  button { padding: 12px 20px; color: white; border: 1px solid #a33842;
+    background: #872a33; font-weight: bold; cursor: pointer }
+  button:hover { background: #b3323d }
+  footer { margin-top: 12px; flex-wrap: wrap }
+  @media (max-width: 520px) { footer { font-size: 11px } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>ASHEN</h1><small>THE LAST SIGNAL</small></div>
+    <div id="hud">
+      <div><strong id="stage">01 / 08</strong><span>STAGE</span></div>
+      <div><strong id="shards">00</strong><span>SHARDS</span></div>
+      <div><strong id="falls">00</strong><span>FALLS</span></div>
+    </div>
+  </header>
+
+  <div class="frame">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="overlay">
+      <div class="card">
+        <div class="red" id="kicker">A SIGNAL IN THE DARK</div>
+        <h2 id="title">ASHEN</h2>
+        <p id="message">Cross the ruins, gather the red signal fragments, and find the way out. Eight stages stand between you and the last light.</p>
+        <button id="start">BEGIN JOURNEY</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span>A / D or ← / → move · SPACE jump · R restart · ESC pause</span>
+    <span>Find the exit. Don't look back.</span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const canvas = document.querySelector("#game");
+  const ctx = canvas.getContext("2d");
+  const overlay = document.querySelector("#overlay");
+  const startButton = document.querySelector("#start");
+  const keys = new Set();
+  const levels = [];
+
+  // Build eight increasingly long stages.
+  for (let n = 0; n < 8; n++) {
+    const width = 1800 + n * 100;
+    const platforms = [[0, 490, 260, 50]];
+    const hazards = [];
+    const shards = [];
+    let previousEnd = 260;
+    let step = 0;
+
+    for (let x = 330; x < width - 260; x += 190) {
+      const y = Math.max(355, Math.min(455,
+        410 + Math.sin(step * 1.7 + n * .8) * 42));
+      platforms.push([x, y, 130, 22]);
+      hazards.push([previousEnd, 490, x - previousEnd, 50]);
+      if (step % 2 === 0) shards.push([x + 65, y - 38]);
+      previousEnd = x + 130;
+      step++;
+    }
+
+    const finishX = width - 180;
+    hazards.push([previousEnd, 490, finishX - previousEnd, 50]);
+    platforms.push([finishX, 490, 180, 50]);
+    levels.push({
+      width, platforms, hazards, shards,
+      exit: [width - 85, 435],
+      name: ["The Quiet", "Cold Iron", "Red Static", "The Divide",
+        "Ashfall", "Nocturne", "Black Glass", "Last Light"][n]
+    });
+  }
+
+  let levelIndex = 0, player, camera = 0, totalShards = 0, falls = 0;
+  let running = false, lastTime = 0, levelShards = [];
+
+  function loadLevel(index) {
+    levelIndex = index;
+    const level = levels[index];
+    player = { x: 52, y: 420, w: 25, h: 34, vx: 0, vy: 0, grounded: false };
+    camera = 0;
+    levelShards = level.shards.map(([x, y]) => ({ x, y, taken: false }));
+    document.querySelector("#stage").textContent =
+      `${String(index + 1).padStart(2, "0")} / 08`;
+    updateHud();
+  }
+
+  function updateHud() {
+    document.querySelector("#shards").textContent = String(totalShards).padStart(2, "0");
+    document.querySelector("#falls").textContent = String(falls).padStart(2, "0");
+  }
+
+  function showOverlay(kicker, heading, text, buttonText, action) {
+    document.querySelector("#kicker").textContent = kicker;
+    document.querySelector("#title").textContent = heading;
+    document.querySelector("#message").textContent = text;
+    startButton.textContent = buttonText;
+    startButton.onclick = action;
+    overlay.classList.remove("hidden");
+  }
+
+  function begin() {
+    overlay.classList.add("hidden");
+    running = true;
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  }
+
+  function overlaps(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x &&
+           a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function die() {
+    falls++;
+    updateHud();
+    player.x = 52;
+    player.y = 420;
+    player.vx = player.vy = 0;
+  }
+
+  function nextLevel() {
+    if (levelIndex === levels.length - 1) {
+      running = false;
+      showOverlay("YOU FOUND THE SIGNAL", "THE END",
+        `You crossed all eight stages and recovered ${totalShards} red fragments.`,
+        "PLAY AGAIN", () => {
+          totalShards = falls = 0;
+          loadLevel(0);
+          begin();
+        });
+    } else {
+      loadLevel(levelIndex + 1);
+    }
+  }
+
+  function update(dt) {
+    const level = levels[levelIndex];
+    const left = keys.has("ArrowLeft") || keys.has("KeyA");
+    const right = keys.has("ArrowRight") || keys.has("KeyD");
+    player.vx = (right ? 270 : 0) - (left ? 270 : 0);
+    player.vy = Math.min(player.vy + 1500 * dt, 850);
+
+    const oldY = player.y;
+    player.x = Math.max(0, Math.min(level.width - player.w, player.x + player.vx * dt));
+    player.y += player.vy * dt;
+    player.grounded = false;
+
+    for (const [x, y, w, h] of level.platforms) {
+      if (overlaps(player, { x, y, w, h }) &&
+          player.vy >= 0 && oldY + player.h <= y + 7) {
+        player.y = y - player.h;
+        player.vy = 0;
+        player.grounded = true;
+      }
+    }
+
+    if (player.y > 640) die();
+
+    for (const [x, y, w, h] of level.hazards) {
+      if (w > 0 && overlaps(player, { x: x + 4, y: y + 4, w: w - 8, h: h - 4 })) {
+        die();
+        break;
+      }
+    }
+
+    for (const shard of levelShards) {
+      if (!shard.taken && overlaps(player, { x: shard.x - 12, y: shard.y - 12, w: 24, h: 24 })) {
+        shard.taken = true;
+        totalShards++;
+        updateHud();
+      }
+    }
+
+    const [exitX, exitY] = level.exit;
+    if (overlaps(player, { x: exitX - 18, y: exitY - 38, w: 36, h: 48 })) nextLevel();
+
+    const target = Math.max(0, Math.min(level.width - canvas.width, player.x - 330));
+    camera += (target - camera) * Math.min(1, dt * 5);
+  }
+
+  function draw() {
+    const level = levels[levelIndex];
+    const bg = ctx.createLinearGradient(0, 0, 0, 540);
+    bg.addColorStop(0, "#17191e");
+    bg.addColorStop(1, "#08090b");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, 960, 540);
+
+    // Distant silhouettes.
+    for (let i = 0; i < 9; i++) {
+      const x = ((i * 170 - camera * .2) % 1200 + 1200) % 1200 - 120;
+      ctx.fillStyle = i % 2 ? "#111317" : "#1b1e23";
+      ctx.fillRect(x, 280 + (i % 3) * 28, 70, 260);
+    }
+
+    ctx.save();
+    ctx.translate(-camera, 0);
+
+    for (const [x, y, w, h] of level.platforms) {
+      ctx.fillStyle = "#292d33";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#737780";
+      ctx.fillRect(x, y, w, 3);
+      ctx.fillStyle = "#181a1e";
+      ctx.fillRect(x, y + h - 5, w, 5);
+    }
+
+    for (const [x, y, w, h] of level.hazards) {
+      if (w <= 0) continue;
+      ctx.fillStyle = "#9e303a";
+      for (let sx = x + 2; sx < x + w - 5; sx += 15) {
+        ctx.beginPath();
+        ctx.moveTo(sx, y + h);
+        ctx.lineTo(sx + 7, y + 9);
+        ctx.lineTo(sx + 14, y + h);
+        ctx.fill();
+      }
+    }
+
+    for (const shard of levelShards) {
+      if (shard.taken) continue;
+      const bob = Math.sin(performance.now() / 220 + shard.x) * 5;
+      ctx.save();
+      ctx.translate(shard.x, shard.y + bob);
+      ctx.rotate(performance.now() / 500);
+      ctx.shadowColor = "#e33d49";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#e33d49";
+      ctx.fillRect(-7, -7, 14, 14);
+      ctx.restore();
+    }
+
+    const [ex, ey] = level.exit;
+    ctx.shadowColor = "#e33d49";
+    ctx.shadowBlur = 22;
+    ctx.strokeStyle = "#e33d49";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(ex, ey, 19, 34, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Player.
+    ctx.fillStyle = "#d7d9dc";
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.fillStyle = "#e33d49";
+    ctx.fillRect(player.x + (player.vx < 0 ? 2 : 17), player.y + 8, 6, 3);
+    ctx.fillStyle = "#555a62";
+    ctx.fillRect(player.x + 4, player.y + 30, 6, 4);
+    ctx.fillRect(player.x + 15, player.y + 30, 6, 4);
+
+    ctx.restore();
+
+    ctx.fillStyle = "#d3d5d8";
+    ctx.font = "12px Segoe UI, Arial";
+    ctx.fillText(level.name.toUpperCase(), 18, 27);
+    ctx.fillStyle = "#30343a";
+    ctx.fillRect(0, 536, 960, 4);
+    ctx.fillStyle = "#c43a45";
+    ctx.fillRect(0, 536, 960 * (player.x / level.width), 4);
+  }
+
+  function loop(now) {
+    if (!running) return;
+    const dt = Math.min((now - lastTime) / 1000, 0.033);
+    lastTime = now;
+    update(dt);
+    draw();
+    if (running) requestAnimationFrame(loop);
+  }
+
+  function jump() {
+    if (running && player.grounded) {
+      player.vy = -610;
+      player.grounded = false;
+    }
+  }
+
+  window.addEventListener("keydown", event => {
+    if (["ArrowLeft", "ArrowRight", "Space", "ArrowUp"].includes(event.code)) event.preventDefault();
+
+    if (event.code === "Escape" && running) {
+      running = false;
+      showOverlay("TAKE A BREATH", "PAUSED",
+        "Your journey is waiting right where you left it.", "CONTINUE", begin);
+      return;
+    }
+    if (event.code === "KeyR" && running) loadLevel(levelIndex);
+    if (["Space", "ArrowUp", "KeyW"].includes(event.code) && !event.repeat) jump();
+    keys.add(event.code);
+  });
+
+  window.addEventListener("keyup", event => keys.delete(event.code));
+  window.addEventListener("blur", () => keys.clear());
+  startButton.onclick = begin;
+
+  loadLevel(0);
+  draw();
+})();
+</script>
+</body>
+</html>
